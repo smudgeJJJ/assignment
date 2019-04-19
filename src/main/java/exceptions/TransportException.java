@@ -1,11 +1,7 @@
 package exceptions;
 
 /**
- * 运输异常基类
- *
- * @author mazhenjie
- * @since 2019/3/24
+ * Base class for custom exceptions related to the transportation network.
  */
 public class TransportException extends Exception {
-    private static final long serialVersionUID = -1512373885345099971L;
 }

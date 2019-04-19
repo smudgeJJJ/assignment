@@ -1,23 +1,29 @@
 package routes;
 
 /**
- * 渡轮线路
- *
- * @author mazhenjie
- * @since 2019/3/24
+ * Represents a ferry route in the transportation network.
  */
 public class FerryRoute extends Route {
-    /**
-     * 渡轮类型常量
-     */
-    private static final String FERRY_TYPE = "ferry";
 
-    public FerryRoute(int routeNumber, String name) {
-        super(routeNumber, name);
+    /**
+     * Creates a new FerryRoute with the given name and number.
+     *
+     * <p>Should meet the specification of {@link Route#Route(String, int)}
+     *
+     * @param name The name of the route.
+     * @param routeNumber The route number of the route.
+     */
+    public FerryRoute(String name, int routeNumber) {
+        super(name, routeNumber);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return "ferry"
+     */
     @Override
     public String getType() {
-        return FERRY_TYPE;
+        return "ferry";
     }
 }

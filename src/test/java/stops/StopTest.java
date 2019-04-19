@@ -28,7 +28,7 @@ public class StopTest {
         stop = new Stop("stop", 0, 0);
         stop1 = new Stop("stop1", 1, 1);
         stop2 = new Stop("stop2", 2, 2);
-        route = new BusRoute(1, "route1");
+        route = new BusRoute("route1", 1);
         route.addStop(stop1);
         route.addStop(stop2);
 
@@ -74,7 +74,7 @@ public class StopTest {
         stop.transportArrive(null);
         Assert.assertTrue(stop.getVehicles().isEmpty());
 
-        PublicTransport ferry = new Ferry(2, 100, new FerryRoute(2, "ferryName"), "ferryType");
+        PublicTransport ferry = new Ferry(2, 100, new FerryRoute("ferryName", 2), "ferryType");
         stop1.transportArrive(publicTransport);
         Assert.assertTrue(stop1.getWaitingPassengers().size() == 3);
         Assert.assertTrue(stop1.isAtStop(publicTransport));

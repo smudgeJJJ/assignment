@@ -1,10 +1,13 @@
 package exceptions;
 
+import passengers.Passenger;
+import vehicles.PublicTransport;
+
 /**
- * 超载异常
+ * Exception thrown when a {@link Passenger} is added to a
+ * {@link PublicTransport} which has reached capacity.
  *
- * @author mazhenjie
- * @since 2019/3/24
+ * (i.e. {@link PublicTransport#passengerCount()} &gt;= {@link PublicTransport#getCapacity()})
  */
 public class OverCapacityException extends TransportException {
 }

@@ -3,62 +3,62 @@ package passengers;
 import stops.Stop;
 
 /**
- * 特价票乘客类
- *
- * @author mazhenjie
- * @since 2019/3/24
+ * A passenger that pays concession fares. Concession fares require a concession id.
  */
 public class ConcessionPassenger extends Passenger {
-
-    /**
-     * 优惠码长度
-     */
-    private static final int CONCESSION_RULE_SIZE = 6;
-
-    /**
-     * 优惠码前缀
-     */
-    private static final String CONCESSION_RULE_PREFIX = "42";
-
-    /**
-     * 乘客优惠码
-     */
+    // concession id for validating concession fares
     private int concessionId;
 
+    // whether the concession passenger has a valid concession id
+    private static final int INVALID = -1;
+
+    /**
+     * Construct a new concession fare passenger with the given name and concessionId.
+     *
+     * <p>Should meet the specification of {@link Passenger#Passenger(String, Stop)}.
+     *
+     * @param name The name of the passenger.
+     * @param destination The destination of the passenger.
+     * @param concessionId Identifying number of the passenger's concession card.
+     */
     public ConcessionPassenger(String name, Stop destination, int concessionId) {
         super(name, destination);
-        this.concessionId = concessionId;
+        renew(concessionId);
     }
 
     /**
-     * 过期
+     * Sets the concession fare to be expired, and thus invalid. {@link #isValid()}
+     * returns false.
      */
     public void expire() {
-        this.concessionId = 0;
+        this.concessionId = INVALID;
     }
 
     /**
-     * 是否验证
-     * <p>
-     * 优惠码有效时返回true
-     * 有效规则：42****
+     * Attempts to renew this concession passenger's fares with the given id.
      *
-     * @return
-     */
-    public boolean isValid() {
-        String concessionId = String.valueOf(this.concessionId);
-        if (concessionId.startsWith(CONCESSION_RULE_PREFIX) && concessionId.length() == CONCESSION_RULE_SIZE) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 更新优惠码
-     *
-     * @param newId
+     * @param newId The ID of the renewed concession card.
      */
     public void renew(int newId) {
-        this.concessionId = newId;
+        if (newId < 0 || Integer.toString(newId).length() < 6
+                || !Integer.toString(newId).startsWith("42")) {
+            this.concessionId = INVALID;
+        } else {
+            this.concessionId = newId;
+        }
+    }
+
+    /**
+     * Returns true if and only if the stored concessionId is valid.
+     *
+     * <p>In this transportation network, a valid concessionId begins with the digits
+     * '42', should be positive, and should be a minimum of six digits in length
+     * (for example, 420000 would be a valid concessionId, while 430000, -420000,
+     * or 42000 would not).
+     *
+     * @return True if concession fares have not expired (are valid), false otherwise.
+     */
+    public boolean isValid() {
+        return this.concessionId != INVALID;
     }
 }

@@ -1,12 +1,13 @@
 package exceptions;
 
+import routes.Route;
+import vehicles.PublicTransport;
+
 /**
- * 类型不匹配异常
+ * Exception thrown when a subclass of {@link PublicTransport} is
+ * added to a {@link Route} for a different type of transport.
  *
- * @author mazhenjie
- * @since 2019/3/24
+ * i.e. Train added to BusRoute
  */
 public class IncompatibleTypeException extends TransportException {
-    private static final long serialVersionUID = -1310717302861673485L;
-
 }

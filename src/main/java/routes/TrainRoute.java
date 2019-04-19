@@ -1,23 +1,29 @@
 package routes;
 
 /**
- * 火车线路
- *
- * @author mazhenjie
- * @since 2019/3/24
+ * Represents a train route in the transportation network.
  */
 public class TrainRoute extends Route {
-    /**
-     * 火车类型常量
-     */
-    private static final String TRAIN_TYPE = "train";
 
-    public TrainRoute(int routeNumber, String name) {
-        super(routeNumber, name);
+    /**
+     * Creates a new TrainRoute with the given name and number.
+     *
+     * <p>Should meet the specification of {@link Route#Route(String, int)}
+     *
+     * @param name The name of the route.
+     * @param routeNumber The route number of the route.
+     */
+    public TrainRoute(String name, int routeNumber) {
+        super(name, routeNumber);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return "train"
+     */
     @Override
     public String getType() {
-        return TRAIN_TYPE;
+        return "train";
     }
 }

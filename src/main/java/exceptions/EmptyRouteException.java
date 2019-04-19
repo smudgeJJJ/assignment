@@ -1,12 +1,11 @@
 package exceptions;
 
+import routes.Route;
+import vehicles.PublicTransport;
+
 /**
- * 空路线异常
- *
- * @author mazhenjie
- * @since 2019/3/24
+ * Exception thrown when a {@link PublicTransport} is added to a
+ * {@link Route} with no {@link stops.Stop}s.
  */
 public class EmptyRouteException extends TransportException {
-    private static final long serialVersionUID = -3763231090150190937L;
-
 }

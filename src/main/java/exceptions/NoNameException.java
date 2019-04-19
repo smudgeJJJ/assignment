@@ -1,11 +1,7 @@
 package exceptions;
 
 /**
- * 空名称异常
- *
- * @author mazhenjie
- * @since 2019/3/24
+ * Exception thrown when a {@link stops.Stop} is created with a null or empty name.
  */
 public class NoNameException extends RuntimeException {
-    private static final long serialVersionUID = -3586621445347327074L;
 }
