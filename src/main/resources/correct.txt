@@ -1,0 +1,7 @@
+2
+stop1:1:1
+stop2:2:1
+1
+bus,route,1:stop1|stop2
+1
+bus,1,1,1,bus1
