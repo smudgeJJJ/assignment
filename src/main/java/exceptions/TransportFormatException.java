@@ -1,11 +1,8 @@
 package exceptions;
 
 /**
- * 传输格式异常
- *
- * @author mazhenjie
- * @since 2019/4/14
+ * Exception thrown when an encoded {@link network.Network} file is formatted
+ * incorrectly.
  */
 public class TransportFormatException extends TransportException {
-    private static final long serialVersionUID = -6629771135390938874L;
 }

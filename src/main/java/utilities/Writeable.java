@@ -1,17 +1,16 @@
 package utilities;
 
 /**
- * 标记可写文件
- *
- * @author mazhenjie
- * @since 2019/4/14
+ * Defines the interface for classes which are able to be encoded for writing
+ * into files.
  */
 public interface Writeable {
-
     /**
-     * 编码
+     * Creates a string representation of the object for writing to a file.
      *
-     * @return
+     * <p>See implementing classes for specific implementation details.
+     *
+     * @return A string representation of the object.
      */
     String encode();
 }
