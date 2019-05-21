@@ -1,6 +1,7 @@
 package stops;
 
 import exceptions.NoNameException;
+import exceptions.OverCapacityException;
 import exceptions.TransportFormatException;
 import passengers.Passenger;
 import routes.Route;
@@ -11,7 +12,7 @@ import java.util.*;
 
 /**
  * Represents a stop in the transportation network.
- *
+ * <p>
  * <p>Stops are where public transport vehicles collect and drop off passengers,
  * and are located along one or more routes.
  */
@@ -35,19 +36,20 @@ public class Stop implements Writeable {
     private int xCoordinate;
     private int yCoordinate;
 
+    private RoutingTable routingTable;
 
     /**
      * Creates a new Stop object with the given name and coordinates.
-     *
+     * <p>
      * <p>A stop should be created with no passengers, routes, or vehicles.
-     *
+     * <p>
      * <p>If the given name contains any newline characters ('\n') or carriage
      * returns * ('\r'), they should be removed from the string before it is
      * stored.
      *
      * @param name The name of the stop being created.
-     * @param x The x coordinate of the stop being created.
-     * @param y The y coordinate of the stop being created.
+     * @param x    The x coordinate of the stop being created.
+     * @param y    The y coordinate of the stop being created.
      * @throws NoNameException If the given name is null or empty.
      */
     public Stop(String name, int x, int y) {
@@ -63,6 +65,7 @@ public class Stop implements Writeable {
         this.passengers = new ArrayList<>();
         this.routes = new ArrayList<>();
         this.atStop = new HashSet<>();
+        this.routingTable = new RoutingTable(this);
     }
 
     /**
@@ -94,7 +97,7 @@ public class Stop implements Writeable {
 
     /**
      * Records that this stop is part of the given route.
-     *
+     * <p>
      * If the given route is null, it should not be added to the stop.
      *
      * @param route The route to be added.
@@ -108,10 +111,10 @@ public class Stop implements Writeable {
 
     /**
      * Returns the routes associated with this stop.
-     *
+     * <p>
      * <p>No specific order is required for the route objects in the returned
      * list.
-     *
+     * <p>
      * <p>Modifying the returned list should not result in changes to the
      * internal state of the class.
      *
@@ -123,7 +126,7 @@ public class Stop implements Writeable {
 
     /**
      * Records the given stop as being a neighbour of this stop.
-     *
+     * <p>
      * <p>If the given stop is null, or if this stop is already recorded as a
      * neighbour, it should not be added as a neighbour, and the method should
      * return early.
@@ -135,14 +138,15 @@ public class Stop implements Writeable {
             return;
         }
         neighbours.add(neighbour);
+        routingTable.addNeighbour(neighbour);
     }
 
     /**
      * Returns all of the stops adjacent to this one on any routes.
-     *
+     * <p>
      * <p>No specific order is required for the stop objects in the returned
      * list.
-     *
+     * <p>
      * <p>Modifying the returned list should not result in changes to the
      * internal state of the class.
      *
@@ -154,7 +158,7 @@ public class Stop implements Writeable {
 
     /**
      * Places a passenger at this stop.
-     *
+     * <p>
      * <p>If the given passenger is null, it should not be added to the stop.
      *
      * @param passenger The passenger to add to the stop.
@@ -164,14 +168,18 @@ public class Stop implements Writeable {
             return;
         }
         this.passengers.add(passenger);
+        if (Objects.nonNull(passenger.getDestination())) {
+            routingTable.nextStop(passenger.getDestination());
+        }
+
     }
 
     /**
      * Returns the passengers currently at this stop.
-     *
+     * <p>
      * <p>The order of the passengers in the returned list should be the same
      * as the order in which the passengers were added to the stop.
-     *
+     * <p>
      * <p>Modifying the returned list should not result in changes to the
      * internal state of the class.
      *
@@ -195,10 +203,10 @@ public class Stop implements Writeable {
 
     /**
      * Returns the vehicles currently at this stop.
-     *
+     * <p>
      * <p>No specific order is required for the public transport objects in the
      * returned list.
-     *
+     * <p>
      * <p>Modifying the returned list should not result in changes to the
      * internal state of the class.
      *
@@ -212,14 +220,14 @@ public class Stop implements Writeable {
     /**
      * Records a public transport vehicle arriving at this stop. There is no
      * limit on the number of vehicles that can be at a stop simultaneously.
-     *
+     * <p>
      * <p>If the given vehicle is already at this stop, or if the vehicle is
      * null, do nothing.
-     *
+     * <p>
      * <p>Otherwise, unload all of the passengers on the arriving vehicle (using
      * {@link PublicTransport#unload()}), and place them at this stop, as well
      * as recording the vehicle itself at this stop.
-     *
+     * <p>
      * <p>This method does not need to check whether this stop is on the given
      * transport's route, or whether the transport's route is a route of this
      * stop, and should also not update the location of the transport.
@@ -242,19 +250,29 @@ public class Stop implements Writeable {
     /**
      * Records a public transport vehicle departing this stop and travelling to
      * a new stop.
-     *
+     * <p>
      * <p>This method should also update the vehicle's location to be the next
      * stop (using {@link PublicTransport#travelTo(Stop)}).
-     *
+     * <p>
      * <p>If the given vehicle is not at this stop, or if the vehicle is null,
      * or if the next stop is null, do nothing.
      *
      * @param transport The transport currently leaving this stop.
-     * @param nextStop The stop the transport is travelling to.
+     * @param nextStop  The stop the transport is travelling to.
      */
     public void transportDepart(PublicTransport transport, Stop nextStop) {
         if (!isAtStop(transport) || nextStop == null) {
             return;
+        }
+        
+        for (Passenger passenger : this.passengers) {
+            if (Objects.equals(nextStop, routingTable.nextStop(passenger.getDestination()))) {
+                try {
+                    transport.addPassenger(passenger);
+                } catch (OverCapacityException e) {
+                    break;
+                }
+            }
         }
         transport.travelTo(nextStop);
         atStop.remove(transport);
@@ -263,7 +281,7 @@ public class Stop implements Writeable {
     /**
      * Returns the Manhattan distance between this stop and the given other
      * stop.
-     *
+     * <p>
      * <p>Manhattan distance between two points, for example (x1, y1) and
      * (x2, y2), is calculated using the following formula:<br>
      * abs(x1 - x2) + abs(y1 - y2)<br>
@@ -271,7 +289,7 @@ public class Stop implements Writeable {
      *
      * @param stop The stop to calculate the Manhattan distance to.
      * @return The Manhattan distance between this stop and the given stop
-     *          (or -1 if the given stop is null)
+     * (or -1 if the given stop is null)
      */
     public int distanceTo(Stop stop) {
         if (stop == null) {
@@ -282,7 +300,7 @@ public class Stop implements Writeable {
 
     /**
      * Compares this stop to the other object for equality.
-     *
+     * <p>
      * <p>Two stops are considered equal if they have the same name,
      * x-coordinate, y-coordinate, and routes. Routes may be in any order, as
      * long as all of this stop's routes are also associated with the other
@@ -290,13 +308,13 @@ public class Stop implements Writeable {
      * in determining equality (that is, if this stop has routes R1 and R2, and
      * other has routes R1, R2, and R1 again, their routes can still be
      * considered equal, ignoring duplicates).
-     *
+     * <p>
      * {@inheritDoc}
      *
      * @param other the other object to compare for equality.
      * @return True if the objects are equal (as defined above), false otherwise
-     *         (including if other is null or not an instance of the
-     *         {@link Stop} class.
+     * (including if other is null or not an instance of the
+     * {@link Stop} class.
      */
     @Override
     public boolean equals(Object other) {
@@ -311,8 +329,11 @@ public class Stop implements Writeable {
                 .equals(new HashSet<>(otherStop.getRoutes()));
     }
 
+    public RoutingTable getRoutingTable() {
+        return routingTable;
+    }
+
     /**
-     *
      * @return hashcode
      */
     @Override
@@ -322,9 +343,9 @@ public class Stop implements Writeable {
 
     /**
      * Creates a string representation of a stop in the format:
-     *
+     * <p>
      * <p>'{name}:{x}:{y}'
-     *
+     * <p>
      * <p>without the surrounding quotes, and where {name} is replaced by the
      * name of the stop, {x} is replaced by the x-coordinate of the stop, and
      * {y} is replaced by the y-coordinate of the stop.
@@ -352,10 +373,10 @@ public class Stop implements Writeable {
 
     /**
      * Creates a new stop object based on the given string representation.
-     *
+     * <p>
      * <p>The format of the string should match that returned by the
      * {@link #encode()} method.
-     *
+     * <p>
      * <p>Whilst parsing, if spaces (i.e. ' ') are encountered before or after
      * integers, (e.g. {x}), the spaces should simply be trimmed (for example,
      * using something like {@link String#trim()}). If spaces are encountered
@@ -365,18 +386,18 @@ public class Stop implements Writeable {
      * @param stopString The string to decode.
      * @return The decoded stop object.
      * @throws TransportFormatException If the given string is null, or the
-     *          string is incorrectly formatted (according to the
-     *          {@link #encode()} representation).
-     *          This includes, but is not limited to:<br>
-     *             <ol>
-     *                 <li>x- or y- coordinates that are not integer values.
-     *                 </li>
-     *                 <li>Any extra delimiters (:) being encountered whilst
-     *                 parsing.</li>
-     *                 <li>Any of the parts of the string being missing. This
-     *                 includes a missing stop name (as this is defined as
-     *                 invalid according to the Stop constructor).</li>
-     *             </ol>
+     *                                  string is incorrectly formatted (according to the
+     *                                  {@link #encode()} representation).
+     *                                  This includes, but is not limited to:<br>
+     *                                  <ol>
+     *                                  <li>x- or y- coordinates that are not integer values.
+     *                                  </li>
+     *                                  <li>Any extra delimiters (:) being encountered whilst
+     *                                  parsing.</li>
+     *                                  <li>Any of the parts of the string being missing. This
+     *                                  includes a missing stop name (as this is defined as
+     *                                  invalid according to the Stop constructor).</li>
+     *                                  </ol>
      */
     public static Stop decode(String stopString)
             throws TransportFormatException {
@@ -389,7 +410,7 @@ public class Stop implements Writeable {
 
             // there should be 3 parts
             final int NUM_PARTS = 3;
-            if ((count + 1 != parts.length) || (parts.length != NUM_PARTS)){
+            if ((count + 1 != parts.length) || (parts.length != NUM_PARTS)) {
                 throw new TransportFormatException();
             }
 
@@ -400,7 +421,7 @@ public class Stop implements Writeable {
 
             stop = new Stop(name, x, y);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException |
-                NullPointerException |NoNameException e) {
+                NullPointerException | NoNameException e) {
             throw new TransportFormatException();
         }
         return stop;

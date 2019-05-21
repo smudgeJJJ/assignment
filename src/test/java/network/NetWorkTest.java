@@ -1,5 +1,6 @@
 package network;
 
+import exceptions.DuplicateStopException;
 import exceptions.TransportFormatException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,7 +22,7 @@ public class NetWorkTest {
     Network network = new Network();
 
     @Before
-    public void buildNetWork() {
+    public void buildNetWork() throws DuplicateStopException{
         Stop stop = new Stop("stop1", 1, 1);
         Stop stop1 = new Stop("stop2", 2, 1);
         Route route = new BusRoute("route", 1);

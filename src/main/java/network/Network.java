@@ -1,12 +1,17 @@
 package network;
 
+import exceptions.DuplicateStopException;
 import exceptions.TransportFormatException;
 import routes.Route;
 import stops.Stop;
 import utilities.Writeable;
 import vehicles.PublicTransport;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +46,7 @@ public class Network {
     /**
      * Creates a new Network from information contained in the file indicated by
      * the given filename. The file should be in the following format:
-     *
+     * <p>
      * <p>{number_of_stops}<br>
      * {stop0:x0:y0}<br>
      * ...<br>
@@ -54,19 +59,19 @@ public class Network {
      * {type0,id0,capacity0,routeNumber,extra}<br>
      * ...<br>
      * {typeN,idN,capacityN,routeNumber,extra}<br>
-     *
+     * <p>
      * <p>where {number_of_stops}, {number_of_routes}, and {number_of_vehicles}
      * are the number of stops, routes, and vehicles (respectively) in the
      * network, and where {stop0,x0,y0} is the encode() representation of a
      * Stop, {type0,name0,number0:stop0|stop1|...|stopM} is the encode()
      * representation of a Route, and {typeN,idN,capacityN,routeNumber,extra}
      * is the encode() representation of a PublicTransport.
-     *
+     * <p>
      * <p>Whilst parsing, if spaces (i.e. ' ') are encountered before or after
      * integers, (i.e. {number_of_stops}, {number_of_routes}, or
      * {number_of_vehicles}), the spaces should simply be trimmed (for example,
      * using something like {@link String#trim()}).
-     *
+     * <p>
      * <p>For example:<br>
      * 4<br>
      * stop0:0:1<br>
@@ -80,32 +85,31 @@ public class Network {
      * train,123,30,1,2<br>
      * train,42,60,1,3<br>
      * bus,412,20,2,ABC123<br>
-     *
+     * <p>
      * <p>The Network object created should have the stops, routes, and vehicles
      * contained in the given file.
      *
      * @param filename The name of the file to load the network from.
-     * @throws IOException If any IO exceptions occur whilst trying to read from
-     *         the file, or if the filename is null.
-     * @throws TransportFormatException
-     *         <ol>
-     *             <li>If any of the lines representing stops, routes, or
-     *             vehicles are incorrectly formatted according to their
-     *             respective decode methods (i.e. if their decode method
-     *             throws an exception).</li>
-     *             <li>If any of the integers are incorrectly formatted
-     *             (i.e. cannot be parsed).</li>
-     *             <li>If the {number_of_stops} does not match the actual number
-     *             of lines representing stops present. This also applies to
-     *             {number_of_routes} and {number_of_vehicles}. An error should
-     *             also be thrown if any of these integers are negative.</li>
-     *             <li>If there are any extra lines present in the file (the
-     *             file may end with a single newline character, but there may
-     *             not be multiple blank lines at the end of the file).</li>
-     *             <li>If any other formatting issues are encountered whilst
-     *             parsing the file (sample valid and invalid network files will
-     *             be provided to help identify some potential issues).</li>
-     *         </ol>
+     * @throws IOException              If any IO exceptions occur whilst trying to read from
+     *                                  the file, or if the filename is null.
+     * @throws TransportFormatException <ol>
+     *                                  <li>If any of the lines representing stops, routes, or
+     *                                  vehicles are incorrectly formatted according to their
+     *                                  respective decode methods (i.e. if their decode method
+     *                                  throws an exception).</li>
+     *                                  <li>If any of the integers are incorrectly formatted
+     *                                  (i.e. cannot be parsed).</li>
+     *                                  <li>If the {number_of_stops} does not match the actual number
+     *                                  of lines representing stops present. This also applies to
+     *                                  {number_of_routes} and {number_of_vehicles}. An error should
+     *                                  also be thrown if any of these integers are negative.</li>
+     *                                  <li>If there are any extra lines present in the file (the
+     *                                  file may end with a single newline character, but there may
+     *                                  not be multiple blank lines at the end of the file).</li>
+     *                                  <li>If any other formatting issues are encountered whilst
+     *                                  parsing the file (sample valid and invalid network files will
+     *                                  be provided to help identify some potential issues).</li>
+     *                                  </ol>
      */
     public Network(String filename)
             throws IOException, TransportFormatException {
@@ -162,14 +166,18 @@ public class Network {
 
     /**
      * Adds the given stop to the transportation network.
-     *
+     * <p>
      * <p>If the given stop is null, it should not be added to the network.
      *
      * @param stop The stop to add to the network.
      */
-    public void addStop(Stop stop) {
+    public void addStop(Stop stop) throws DuplicateStopException {
         if (stop == null) {
             return;
+        }
+
+        if (stops.contains(stop)) {
+            throw new DuplicateStopException();
         }
 
         stops.add(stop);
@@ -177,24 +185,29 @@ public class Network {
 
     /**
      * Adds multiple stops to the transport network.
-     *
+     * <p>
      * <p>If any of the stops in the given list are null, none of them should be
      * added (i.e. either all of the stops are added, or none are).
      *
      * @param stops The stops to add to the network.
      */
-    public void addStops(List<Stop> stops) {
+    public void addStops(List<Stop> stops) throws DuplicateStopException {
         for (Stop stop : stops) {
             if (stop == null) {
                 return;
             }
+
+            if (this.stops.contains(stop)) {
+                throw new DuplicateStopException();
+            }
         }
+
         this.stops.addAll(stops);
     }
 
     /**
      * Gets all of the stops in this network.
-     *
+     * <p>
      * <p>Modifying the returned list should not result in changes to the
      * internal state of the class.
      *
@@ -206,7 +219,7 @@ public class Network {
 
     /**
      * Adds the given route to the network.
-     *
+     * <p>
      * <p>If the given route is null, it should not be added to the network.
      *
      * @param route The route to add to the network.
@@ -219,7 +232,7 @@ public class Network {
 
     /**
      * Gets all the routes in this network.
-     *
+     * <p>
      * <p>Modifying the returned list should not result in changes to the
      * internal state of the class.
      *
@@ -231,7 +244,7 @@ public class Network {
 
     /**
      * Adds the given vehicle to the network.
-     *
+     * <p>
      * <p>If the given vehicle is null, it should not be added to the network.
      *
      * @param vehicle The vehicle to add to the network.
@@ -244,7 +257,7 @@ public class Network {
 
     /**
      * Gets all the vehicles in this transportation network.
-     *
+     * <p>
      * <p>Modifying the returned list should not result in changes to the
      * internal state of the class.
      *
@@ -257,19 +270,19 @@ public class Network {
 
     /**
      * Saves this network to the file indicated by the given filename.
-     *
+     * <p>
      * <p>The file should be written with the same format as described in the
      * {@link #Network(String)} constructor.
-     *
+     * <p>
      * <p>The stops should be written to the file in the same order in which
      * they were added to the network. This also applies to the routes and the
      * vehicles.
-     *
+     * <p>
      * <p>If the given filename is null, the method should do nothing.
      *
      * @param filename The name of the file to save the network to.
      * @throws IOException If there are any IO errors whilst writing to the
-     * file.
+     *                     file.
      */
     public void save(String filename) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
