@@ -49,9 +49,10 @@ public class RoutingTable {
     public void addNeighbour(Stop neighbour) {
         for (Stop stop : this.stops) {
             stop.addNeighbouringStop(neighbour);
-            if (this.addOrUpdateEntry(stop, stop.distanceTo(neighbour), neighbour)) {
+            if (this.addOrUpdateEntry(neighbour, stop.distanceTo(neighbour), stop)) {
                 this.synchronise();
             }
+            break;
         }
     }
 
@@ -122,11 +123,9 @@ public class RoutingTable {
     public void synchronise() {
         List<Stop> stopList = this.traverseNetwork();
         boolean isChange = false;
-        do {
-            for (Stop stop : stopList) {
-                isChange = this.transferEntries(stop);
-            }
-        } while (isChange);
+        for (Stop stop : stopList) {
+            isChange = this.transferEntries(stop);
+        }
     }
 
     /**
