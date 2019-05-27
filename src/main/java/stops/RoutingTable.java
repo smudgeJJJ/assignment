@@ -30,7 +30,7 @@ public class RoutingTable {
             add(initialStop);
         }};
         this.routingEntries = new ArrayList<RoutingEntry>() {{
-            add(new RoutingEntry());
+            add(new RoutingEntry(initialStop, 0));
         }};
     }
 
