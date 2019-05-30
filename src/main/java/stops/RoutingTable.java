@@ -150,13 +150,15 @@ public class RoutingTable {
             Stop stop = this.stops.get(i);
             RoutingEntry entry = this.routingEntries.get(i);
             if (Objects.isNull(map.get(stop))) {
-                routingTable.addOrUpdateEntry(other, other.distanceTo(stop), stop);
-                isChange = true;
+                if (routingTable.addOrUpdateEntry(other, other.distanceTo(stop), stop)) {
+                    isChange = true;
+                }
                 continue;
             }
             if (map.get(stop) < entry.getCost()) {
-                this.addOrUpdateEntry(stop, stop.distanceTo(other), other);
-                isChange = true;
+                if (this.addOrUpdateEntry(stop, stop.distanceTo(other), other)) {
+                    isChange = true;
+                }
                 continue;
             }
         }

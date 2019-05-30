@@ -11,7 +11,11 @@ import stops.Stop;
 import vehicles.Bus;
 import vehicles.PublicTransport;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mazhenjie
@@ -21,9 +25,17 @@ public class NetWorkTest {
 
     Network network = new Network();
 
+    private static final String ERROR = "error";
+
+    private Stop stop;
+
+    static {
+
+    }
+
     @Before
-    public void buildNetWork() throws DuplicateStopException{
-        Stop stop = new Stop("stop1", 1, 1);
+    public void buildNetWork() throws DuplicateStopException, IOException {
+        stop = new Stop("stop1", 1, 1);
         Stop stop1 = new Stop("stop2", 2, 1);
         Route route = new BusRoute("route", 1);
         route.addStop(stop);
@@ -34,11 +46,15 @@ public class NetWorkTest {
         network.addStop(stop1);
         network.addRoute(route);
         network.addVehicle(publicTransport);
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(ERROR));
+        writer.write("1");
+        writer.close();
     }
 
     @Test
     public void testInit() throws IOException, TransportFormatException {
-        Network network1 = new Network("correct");
+        Network network1 = new Network("correct1");
         Assert.assertEquals(network.getRoutes(), network1.getRoutes());
         Assert.assertEquals(network.getStops(), network1.getStops());
         //PublicTransport没有重写hashCodeAndEquals，不能直接比较
@@ -52,6 +68,28 @@ public class NetWorkTest {
 
     @Test
     public void save() throws IOException {
-        network.save("correct");
+        network.save("correct1");
+    }
+
+    @Test(expected = DuplicateStopException.class)
+    public void testAddStop() throws DuplicateStopException {
+        network.addStop(stop);
+    }
+
+    @Test(expected = DuplicateStopException.class)
+    public void testAddStopListError() throws DuplicateStopException {
+        List<Stop> stopList = new ArrayList<Stop>() {{
+            add(stop);
+        }};
+        network.addStops(stopList);
+    }
+
+    @Test
+    public void testAddStopList() throws DuplicateStopException {
+        List<Stop> stopList = new ArrayList<Stop>() {{
+            add(new Stop("stop33", 2, 1));
+        }};
+        network.addStops(stopList);
+        Assert.assertEquals(network.getStops().size(), 3);
     }
 }

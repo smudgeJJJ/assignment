@@ -261,10 +261,10 @@ public class Stop implements Writeable {
      * @param nextStop  The stop the transport is travelling to.
      */
     public void transportDepart(PublicTransport transport, Stop nextStop) {
-        if (!isAtStop(transport) || nextStop == null) {
+        if (transport == null || !isAtStop(transport) || nextStop == null) {
             return;
         }
-        
+
         for (Passenger passenger : this.passengers) {
             if (Objects.equals(nextStop, routingTable.nextStop(passenger.getDestination()))) {
                 try {
